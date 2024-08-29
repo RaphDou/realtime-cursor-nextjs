@@ -1,21 +1,17 @@
-import { NextApiRequest } from 'next';
-import { Server as NetServer } from 'http';
+import { NextRequest, NextResponse } from 'next/server';
 import { Server as SocketIOServer } from 'socket.io';
-import { NextApiResponseServerIO } from '@/types';
+import { createServer } from 'http';
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
+export const dynamic = 'force-dynamic';
 
-const ioHandler = (req: NextApiRequest, res: NextApiResponseServerIO) => {
-  if (!res.socket.server.io) {
-    console.log('*First use, starting socket.io');
+let io: SocketIOServer | null = null;
 
-    const httpServer: NetServer = res.socket.server as any;
-    const io = new SocketIOServer(httpServer, {
+function initSocketIO() {
+  if (!io) {
+    const httpServer = createServer();
+    io = new SocketIOServer(httpServer, {
       path: '/api/socket',
+      addTrailingSlash: false,
     });
 
     io.on('connection', (socket) => {
@@ -30,10 +26,13 @@ const ioHandler = (req: NextApiRequest, res: NextApiResponseServerIO) => {
       });
     });
 
-    res.socket.server.io = io;
+    httpServer.listen(3001, () => {
+      console.log('Socket.IO server running on port 3001');
+    });
   }
+}
 
-  res.end();
-};
-
-export default ioHandler;
+export async function GET(req: NextRequest) {
+  initSocketIO();
+  return NextResponse.json({ message: 'Socket server is running' });
+}
