@@ -20,8 +20,8 @@ export default function CursorTracker() {
     if (!socket) return
 
     const handleCursorMove = (data: Cursor) => {
-      setCursors(prevCursors => {
-        const newCursors = prevCursors.filter(c => c.id !== data.id)
+      setCursors(prev => {
+        const newCursors = prev.filter(c => c.id !== data.id)
         return [...newCursors, data]
       })
     }
@@ -38,7 +38,7 @@ export default function CursorTracker() {
 
     const handleMouseMove = (event: MouseEvent) => {
       const cursor: Cursor = {
-        id: socket.id || 'unknown-' + Math.random().toString(36).substring(2, 9),
+        id: socket.id || `user-${Math.random().toString(36).substr(2, 9)}`,
         x: event.clientX,
         y: event.clientY,
         location: location

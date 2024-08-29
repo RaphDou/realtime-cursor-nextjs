@@ -30,9 +30,10 @@ function initSocketIO() {
       console.log('Socket.IO server running on port 3001');
     });
   }
+  return io;
 }
 
 export async function GET(req: NextRequest) {
-  initSocketIO();
+  const socketServer = initSocketIO();
   return NextResponse.json({ message: 'Socket server is running' });
 }
