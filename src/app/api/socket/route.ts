@@ -1,34 +1,39 @@
-import { NextApiResponseServerIO } from '@/types'
-import { Server as NetServer } from 'http'
-import { NextApiRequest } from 'next'
-import { Server as ServerIO, Socket } from 'socket.io'
+import { NextApiRequest } from 'next';
+import { Server as NetServer } from 'http';
+import { Server as SocketIOServer } from 'socket.io';
+import { NextApiResponseServerIO } from '@/types';
 
 export const config = {
   api: {
     bodyParser: false,
   },
-}
+};
 
-export default async function GET(req: NextApiRequest, res: NextApiResponseServerIO) {
+const ioHandler = (req: NextApiRequest, res: NextApiResponseServerIO) => {
   if (!res.socket.server.io) {
-    console.log('New Socket.io server...')
-    const httpServer: NetServer = res.socket.server as any
-    const io = new ServerIO(httpServer, {
-      path: '/api/socket',
-    })
-    res.socket.server.io = io
+    console.log('*First use, starting socket.io');
 
-    io.on('connection', (socket: Socket) => {
-      console.log('New client connected')
+    const httpServer: NetServer = res.socket.server as any;
+    const io = new SocketIOServer(httpServer, {
+      path: '/api/socket',
+    });
+
+    io.on('connection', (socket) => {
+      console.log('New client connected');
 
       socket.on('cursor-move', (data: { id: string; x: number; y: number; location: string }) => {
-        socket.broadcast.emit('cursor-move', data)
-      })
+        socket.broadcast.emit('cursor-move', data);
+      });
 
       socket.on('disconnect', () => {
-        console.log('Client disconnected')
-      })
-    })
+        console.log('Client disconnected');
+      });
+    });
+
+    res.socket.server.io = io;
   }
-  res.end()
-}
+
+  res.end();
+};
+
+export default ioHandler;
